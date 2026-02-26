@@ -11,6 +11,7 @@ import SwiftUI
 struct RandomDogView: View {
 
     @StateObject private var viewModel: RandomDogViewModel
+    @EnvironmentObject private var favoritesStore: FavoritesStore
 
     init(viewModel: RandomDogViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -33,8 +34,14 @@ struct RandomDogView: View {
             .safeAreaInset(edge: .bottom) {
                 bottomAction
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
+                    .padding(.vertical, 12)
                     .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .overlay(alignment: .top) {
+                        Divider().opacity(0.25)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
             }
             .navigationTitle("Barkly")
             .toolbar {
@@ -161,17 +168,41 @@ struct RandomDogView: View {
                     .overlay { ProgressView() }
 
             case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .shadow(color: .black.opacity(0.12), radius: 14, x: 0, y: 8)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 18)
-                            .strokeBorder(Color.black.opacity(0.05), lineWidth: 1)
+                let isFavorite = favoritesStore.isFavorite(url)
+
+                ZStack(alignment: .bottomTrailing) {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .shadow(color: .black.opacity(0.12), radius: 14, x: 0, y: 8)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 18)
+                                .strokeBorder(Color.black.opacity(0.05), lineWidth: 1)
+                        }
+                        .accessibilityLabel("Random dog photo")
+
+                    Button {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                            favoritesStore.toggle(url)
+                        }
+                    } label: {
+                        Image(systemName: isFavorite ? "heart.fill" : "heart")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(isFavorite ? .red : .secondary)
+                            .symbolRenderingMode(.hierarchical)
+                            .padding(10)
+                            .background(.thinMaterial, in: Circle())
+                            .overlay {
+                                Circle()
+                                    .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
+                            }
+                            .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 3)
                     }
-                    .accessibilityLabel("Random dog photo")
+                    .padding(14)
+                    .accessibilityLabel(isFavorite ? "Remove from favorites" : "Add to favorites")
+                }
 
             case .failure:
                 RoundedRectangle(cornerRadius: 18)
@@ -196,40 +227,19 @@ struct RandomDogView: View {
 }
 
 #Preview("Random") {
-    let urls = [
-        URL(string: "https://images.dog.ceo/breeds/husky/n02110185_1469.jpg")!,
-        URL(string: "https://images.dog.ceo/breeds/hound-afghan/n02088094_1003.jpg")!,
-        URL(string: "https://images.dog.ceo/breeds/ridgeback-rhodesian/n02087394_10591.jpg")!
-    ]
-
-    let mockService = PreviewDogService(urls: urls)
+    let mockService = MockDogService(mode: .cycling)
     let viewModel = RandomDogViewModel(service: mockService)
+    let favorites = FavoritesStore()
+
     return RandomDogView(viewModel: viewModel)
+        .environmentObject(favorites)
 }
 
 #Preview("Error") {
-    let mockService = PreviewErrorDogService()
+    let mockService = MockDogService(mode: .failure)
     let viewModel = RandomDogViewModel(service: mockService)
+    let favorites = FavoritesStore()
+
     return RandomDogView(viewModel: viewModel)
-}
-
-private final class PreviewDogService: DogService {
-    private let urls: [URL]
-
-    init(urls: [URL]) {
-        self.urls = urls
-    }
-
-    func fetchRandomDogImage() async throws -> DogImage {
-        guard let url = urls.randomElement() else {
-            throw AppError.invalidResponse
-        }
-        return DogImage(imageURL: url)
-    }
-}
-
-private struct PreviewErrorDogService: DogService {
-    func fetchRandomDogImage() async throws -> DogImage {
-        throw AppError.network("No internet connection")
-    }
+        .environmentObject(favorites)
 }

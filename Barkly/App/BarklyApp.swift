@@ -9,11 +9,11 @@ import SwiftUI
 
 @main
 struct BarklyApp: App {
+    @StateObject private var favoritesStore = FavoritesStore()
     var body: some Scene {
         WindowGroup {
-            let service = LiveDogService()
-            let viewModel = RandomDogViewModel(service: service)
-            RandomDogView(viewModel: viewModel)
+            RootTabView(service: LiveDogService())
+                .environmentObject(favoritesStore)
         }
     }
 }
