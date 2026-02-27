@@ -36,14 +36,28 @@ struct FavoritesView: View {
                         description: Text("Tap the heart on a dog photo to save it here.")
                     )
                 } else {
-                    ScrollView {
-                        LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(favoritesStore.favoriteURLs, id: \.absoluteString) { url in
-                                let normalized = httpsURL(url)
-                                FavoriteThumbnailView(url: normalized)
+                    GeometryReader { geo in
+                        let spacing: CGFloat = 12
+                        let horizontalPadding: CGFloat = 16
+                        let availableWidth = geo.size.width - (horizontalPadding * 2) - spacing
+                        let cellWidth = max(0, availableWidth / 2)
+                        let cellHeight: CGFloat = 140
+
+                        let fixedColumns = [
+                            GridItem(.fixed(cellWidth), spacing: spacing),
+                            GridItem(.fixed(cellWidth), spacing: spacing)
+                        ]
+
+                        ScrollView {
+                            LazyVGrid(columns: fixedColumns, spacing: spacing) {
+                                ForEach(favoritesStore.favoriteURLs, id: \.absoluteString) { url in
+                                    let normalized = httpsURL(url)
+                                    FavoriteThumbnailView(url: normalized, size: CGSize(width: cellWidth, height: cellHeight))
+                                }
                             }
+                            .padding(.horizontal, horizontalPadding)
+                            .padding(.vertical, 16)
                         }
-                        .padding(16)
                     }
                 }
             }
@@ -57,18 +71,20 @@ struct FavoritesView: View {
 private struct FavoriteThumbnailView: View {
 
     let url: URL
+    let size: CGSize
     @StateObject private var loader = ImageLoader()
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.tertiarySystemFill))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: size.width, height: size.height)
 
             if let uiImage = loader.uiImage {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
+                    .frame(width: size.width, height: size.height)
                     .clipped()
             } else if loader.isLoading {
                 ProgressView()
@@ -77,8 +93,7 @@ private struct FavoriteThumbnailView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(height: 140)
-        .frame(maxWidth: .infinity)
+        .frame(width: size.width, height: size.height)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .clipped()
         .task(id: url) {
