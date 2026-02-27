@@ -9,10 +9,19 @@ import SwiftUI
 
 @main
 struct BarklyApp: App {
-    @StateObject private var favoritesStore = FavoritesStore()
+    private let dogService: DogService
+    @StateObject private var favoritesStore: FavoritesStore
+
+    init() {
+        self.dogService = LiveDogService()
+
+        let persistence: FavoritesPersistence = UserDefaultsFavoritesPersistence()
+        _favoritesStore = StateObject(wrappedValue: FavoritesStore(persistence: persistence))
+    }
+
     var body: some Scene {
         WindowGroup {
-            RootTabView(service: LiveDogService())
+            RootTabView(service: dogService)
                 .environmentObject(favoritesStore)
         }
     }

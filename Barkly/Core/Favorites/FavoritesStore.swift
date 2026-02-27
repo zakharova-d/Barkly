@@ -7,11 +7,21 @@
 
 
 import Foundation
+import Combine
 
 @MainActor
 final class FavoritesStore: ObservableObject {
 
     @Published private(set) var favoriteURLs: [URL] = []
+    private let persistence: FavoritesPersistence
+
+    init(persistence: FavoritesPersistence = UserDefaultsFavoritesPersistence()) {
+        self.persistence = persistence
+
+        let loaded = persistence.load().map(normalizedURL)
+        self.favoriteURLs = loaded
+        self.favoriteSet = Set(loaded.map { $0.absoluteString })
+    }
 
     private var favoriteSet: Set<String> = []
 
@@ -40,5 +50,6 @@ final class FavoritesStore: ObservableObject {
             favoriteSet.insert(key)
             favoriteURLs.insert(normalized, at: 0)
         }
+        persistence.save(favoriteURLs)
     }
 }
