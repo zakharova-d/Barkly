@@ -16,14 +16,7 @@ final class MockDogService: DogService {
         case failure
     }
 
-    // Фіксований набір перевірених картинок
-    private let urls: [URL] = [
-        URL(string: "https://images.dog.ceo/breeds/husky/n02110185_1469.jpg")!,
-        URL(string: "https://images.dog.ceo/breeds/hound-afghan/n02088094_1003.jpg")!,
-        URL(string: "https://images.dog.ceo/breeds/ridgeback-rhodesian/n02087394_10591.jpg")!,
-        URL(string: "https://images.dog.ceo/breeds/shiba/shiba-3i.jpg")!
-    ]
-
+    private let urls: [URL] = PreviewDogImages.urls
     private let mode: Mode
     private var index: Int = 0
 
