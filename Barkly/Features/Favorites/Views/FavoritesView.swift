@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import Foundation
 
 struct FavoritesView: View {
 
@@ -77,29 +78,13 @@ private struct FavoritesViewContent: View {
 
 // MARK: - Previews
 
-private struct FavoritesPreviewContainer: View {
-
-    @State private var urls: [URL]
-
-    init(urls: [URL]) {
-        _urls = State(initialValue: urls)
-    }
-
-    var body: some View {
-        FavoritesViewContent(
-            favoriteURLs: urls,
-            onRemove: { url in
-                // Simulate removing from favorites.
-                urls.removeAll { $0 == url }
-            }
-        )
-    }
-}
-
 #Preview("With Data") {
-    FavoritesPreviewContainer(urls: PreviewDogImages.urls)
+    let store = FavoritesStore(persistence: InMemoryFavoritesPersistence())
+    let _ = PreviewDogImages.urls.map { store.toggle($0) }
+    FavoritesView().environmentObject(store)
 }
 
 #Preview("Empty") {
-    FavoritesPreviewContainer(urls: [])
+    let store = FavoritesStore(persistence: InMemoryFavoritesPersistence())
+    FavoritesView().environmentObject(store)
 }

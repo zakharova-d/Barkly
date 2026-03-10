@@ -10,6 +10,7 @@ import SwiftUI
 struct RootTabView: View {
 
     let service: DogService
+    let store: FavoritesStore
 
     var body: some View {
         TabView {
@@ -23,20 +24,27 @@ struct RootTabView: View {
                     Label("Favorites", systemImage: "heart")
                 }
         }
+        // Ensure both tabs share the same FavoritesStore instance.
+        .environmentObject(store)
     }
 }
 
 private struct RandomDogTab: View {
 
-    let service: DogService
+    @StateObject private var viewModel: RandomDogViewModel
+
+    init(service: DogService) {
+        _viewModel = StateObject(wrappedValue: RandomDogViewModel(service: service))
+    }
 
     var body: some View {
-        let viewModel = RandomDogViewModel(service: service)
-        return RandomDogView(viewModel: viewModel)
+        RandomDogView(viewModel: viewModel)
     }
 }
 
 #Preview {
-    RootTabView(service: MockDogService(mode: .random))
-        .environmentObject(FavoritesStore())
+    let store = FavoritesStore(persistence: InMemoryFavoritesPersistence())
+    PreviewDogImages.urls.prefix(4).forEach { store.toggle($0) }
+
+    return RootTabView(service: MockDogService(mode: .random), store: store)
 }

@@ -7,7 +7,6 @@
 
 
 import Foundation
-import Combine
 
 @MainActor
 final class FavoritesStore: ObservableObject {

@@ -21,7 +21,7 @@ struct BarklyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView(service: dogService)
+            RootTabView(service: dogService, store: favoritesStore)
                 .environmentObject(favoritesStore)
         }
     }
