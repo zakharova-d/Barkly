@@ -13,6 +13,12 @@ final class ImageLoader: ObservableObject {
 
     @Published var uiImage: UIImage?
     @Published var isLoading: Bool = false
+    
+    private let client: ImageClient
+
+    init(client: ImageClient = ImageClient()) {
+        self.client = client
+    }
 
     func load(url: URL) async {
         // Avoid restarting if already loaded within this cell lifecycle.
@@ -22,9 +28,7 @@ final class ImageLoader: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let image = UIImage(data: data) else { return }
-            uiImage = image
+            uiImage = try await client.loadImage(from: url)
         } catch {
             // Keep placeholder on failure.
         }
