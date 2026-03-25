@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "9FC9F7F2-F11B-4B22-A7E7-FE3503B90B6A",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Barkly.xcodeproj",
+        "identifier" : "46A7FC982F4E0E250071D3AB",
+        "name" : "BarklyTests"
+      }
+    }
+  ],
+  "version" : 1
+}
