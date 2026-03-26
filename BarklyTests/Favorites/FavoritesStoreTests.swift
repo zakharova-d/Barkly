@@ -46,4 +46,27 @@ final class FavoritesStoreTests: XCTestCase {
 
         XCTAssertTrue(store.isFavorite(url))
     }
+
+    @MainActor
+    func test_init_loadsURLsFromPersistence() {
+        let persistence = InMemoryFavoritesPersistence()
+        let savedURL = URL(string: "https://example.com/image.jpg")!
+        persistence.save([savedURL])
+
+        let store = FavoritesStore(persistence: persistence)
+
+        XCTAssertEqual(store.favoriteURLs, [savedURL])
+    }
+
+    @MainActor
+    func test_toggle_persistsUpdatedURLs() {
+        let persistence = InMemoryFavoritesPersistence()
+        let store = FavoritesStore(persistence: persistence)
+
+        let url = URL(string: "https://example.com/image.jpg")!
+
+        store.toggle(url)
+
+        XCTAssertEqual(persistence.load(), [url])
+    }
 }
