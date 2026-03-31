@@ -14,7 +14,7 @@ final class ImageCache {
 
     private let cache = NSCache<NSURL, UIImage>()
 
-    private init() {}
+    init() {}
 
     func image(for url: URL) -> UIImage? {
         cache.object(forKey: url as NSURL)

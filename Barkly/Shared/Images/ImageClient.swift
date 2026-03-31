@@ -10,10 +10,19 @@ import UIKit
 
 final class ImageClient {
 
-    private let cache: ImageCache
+    typealias DataLoader = (URL) async throws -> (Data, URLResponse)
 
-    init(cache: ImageCache = .shared) {
+    private let cache: ImageCache
+    private let dataLoader: DataLoader
+
+    init(
+        cache: ImageCache = .shared,
+        dataLoader: @escaping DataLoader = { url in
+            try await URLSession.shared.data(from: url)
+        }
+    ) {
         self.cache = cache
+        self.dataLoader = dataLoader
     }
 
     func loadImage(from url: URL) async throws -> UIImage {
@@ -24,7 +33,7 @@ final class ImageClient {
         }
 
         // Fetch image from network
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, _) = try await dataLoader(url)
 
         guard let image = UIImage(data: data) else {
             throw URLError(.badServerResponse)
